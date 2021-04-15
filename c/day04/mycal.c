@@ -10,6 +10,7 @@ int main(void)
 	int i;
 	int sumdays = 0;
 	int firstday;
+	int monthdays;
 
 	do {
 		printf("请输入1990后的任意日期(year/month):");
@@ -33,7 +34,32 @@ int main(void)
 	}
 	sumdays += 1;
 	firstday = sumdays % 7;
-	printf("星期%d\n", firstday);
+	// printf("星期%d\n", firstday);
+
+	switch (month) {
+		case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+			monthdays = 31;
+			break;
+		case 4: case 6: case 9: case 11:
+			monthdays = 30;
+			break;
+		case 2:
+			monthdays = 28+(year % 4 == 0 && year % 100 != 0 || year % 400 == 0);
+			break;
+		default:
+			break;
+	}
+		
+	// 打印日历
+	printf("       %d月%d年\n", month, year);
+	printf("日 一 二 三 四 五 六\n");
+	// 空格
+	for (i = 0; i < firstday; i++)
+		printf("   ");
+	for (i = 1; i <= monthdays; i++) {
+		printf("%2d%c", i, (i+firstday) % 7 ? ' ':'\n');	
+	}
+	printf("\n");
 
 	return 0;
 }
