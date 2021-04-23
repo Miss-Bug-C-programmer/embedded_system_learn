@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 /*
 动态整型数组 
@@ -6,6 +7,7 @@
 
 int addElement(int **arr, int *n, int elm);
 void travalArray(const int *arr, int n);
+int delArray(int **arr, int *n, int key);
 int main(void)
 {
 	int *p = NULL;
@@ -15,6 +17,8 @@ int main(void)
 	for (i = 1; i <= 10; i++)
 		addElement(&p, &n, i);
 
+	travalArray(p, n);
+	delArray(&p, &n, 5);
 	travalArray(p, n);
 
 	return 0;
@@ -60,9 +64,12 @@ int delArray(int **arr, int *n, int key)
 	if (i == *n)
 		return -1;
 	// i就是待删除元素的下标
+#if 0
 	for (; i < *n-1; i++) {
 		(*arr)[i] = (*arr)[i+1];
 	}
+#endif
+	memcpy(*arr+i, *arr+i+1, (*n-i-1)*sizeof(int));
 	--*n;
 	*arr = realloc(*arr, (*n) * sizeof(int));
 	// if error
