@@ -45,6 +45,24 @@ void seqlistDestroy(seqlist_t *sl)
 	free(sl);
 }
 
+int seqlistDelete(seqlist_t *sl, const void *key, cmp_t cmp)
+{
+	int i;
+
+	for (i = 0; i < sl->nmembs; i++) {
+		if (!cmp((char *)sl->arr+i*sl->size, key)) {
+			break;	
+		}
+	}
+	if (i == sl->nmembs)
+		return -1;
+	memcpy((char *)sl->arr+i*sl->size, \
+			(char *)sl->arr+(i+1)*sl->size, \
+			(sl->nmembs-(i+1))*sl->size);
+	sl->nmembs--;
+
+	return 0;
+}
 
 
 

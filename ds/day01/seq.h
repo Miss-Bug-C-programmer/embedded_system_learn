@@ -15,6 +15,7 @@ typedef struct {
 }seqlist_t;
 
 typedef void (*pri_t)(const void *);
+typedef int (*cmp_t)(const void *data, const void *key);
 
 // 接口函数
 /*
@@ -26,6 +27,11 @@ int seqlistInit(int size, int capacity, seqlist_t **sl);
 	增加新的元素 
  */
 int seqlistAdd(seqlist_t *sl, const void *data);
+
+/*
+ 删除指定元素
+ */
+int seqlistDelete(seqlist_t *sl, const void *key, cmp_t cmp);
 
 /*
  	遍历
