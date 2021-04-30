@@ -74,3 +74,71 @@ void listDestroy(listhead_t *h)
 	free(h);
 }
 
+// 前驱
+static struct node_st *__find(const listhead_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *prev, *cur;	
+
+	prev = &h->node;
+	cur = prev->next;
+	while (cur != &h->node) {
+		if (!cmp(cur->data, key))
+			return prev;
+		prev = cur;
+		cur = cur->next;
+	}
+
+	return NULL;
+}
+
+void *listSearch(const listhead_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *prev;
+
+	prev = __find(h, key, cmp);
+	if (prev == NULL)
+		return NULL;
+	return prev->next->data;
+}
+
+// 删除
+int listDelete(listhead_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *prev, *del;	
+
+	prev = __find(h, key, cmp);
+	if (NULL == prev)
+		return -1;
+	del = prev->next;
+	prev->next = del->next;
+	del->next = NULL;
+	free(del->data);
+	free(del);
+
+	return 0;
+}
+
+// 摘除 == 删除结点前copy数据
+int listFetch(listhead_t *h, const void *key, cmp_t cmp, void *data)
+{
+	struct node_st *prev, *del;	
+
+	prev = __find(h, key, cmp);
+	if (NULL == prev)
+		return -1;
+	del = prev->next;
+	prev->next = del->next;
+	del->next = NULL;
+
+	memcpy(data, del->data, h->size);
+
+	free(del->data);
+	free(del);
+
+	return 0;
+
+
+}
+
+
+
