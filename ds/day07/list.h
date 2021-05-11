@@ -141,7 +141,7 @@ static inline int list_is_last(const struct list_head *list,
  */
 static inline int list_empty(const struct list_head *head)
 {
-	return READ_ONCE(head->next) == head;
+	return head->next == head;
 }
 
 static inline int list_empty_careful(const struct list_head *head)
@@ -156,6 +156,11 @@ static inline int list_empty_careful(const struct list_head *head)
  * @type:	the type of the struct this is embedded in.
  * @member:	the name of the list_head within the struct.
  */
+#define offsetof(TYPE, MEMBER)	((size_t)&((TYPE *)0)->MEMBER)
+#define container_of(ptr, type, member) ({				\
+	void *__mptr = (void *)(ptr);					\
+	((type *)(__mptr - offsetof(type, member))); })
+
 #define list_entry(ptr, type, member) \
 	container_of(ptr, type, member)
 
@@ -166,5 +171,6 @@ static inline int list_empty_careful(const struct list_head *head)
  */
 #define list_for_each(pos, head) \
 	for (pos = (head)->next; pos != (head); pos = pos->next)
+
 #endif
 
