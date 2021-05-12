@@ -27,7 +27,15 @@ int main(void)
 		treeInsert(tree, arr+i, cmpInt);
 	}
 
-	treeMid(tree, show);
+//	treeMid(tree, show);
+	treeShow(tree, show);
+
+	printf("*****************delete*****************\n");
+	int d = 5;
+	treeDelete(tree, &d, cmpInt);
+	treeShow(tree, show);
+
+	treeDestroy(tree);
 
 	return 0;
 }

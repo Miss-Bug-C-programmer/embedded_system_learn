@@ -19,6 +19,9 @@ typedef void (*pri_t)(const void *data);
 int treeInit(int size, tree_t **t);
 int treeInsert(tree_t *rt, const void *data, cmp_t cmp);
 int treeMid(const tree_t *rt, pri_t pri);
+int treeDelete(tree_t *rt, const void *key, cmp_t cmp);
+void treeDestroy(tree_t *rt);
+void treeShow(const tree_t *rt, pri_t pri);
 
 #endif
 
