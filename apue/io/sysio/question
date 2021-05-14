@@ -1,0 +1,11 @@
+
+1. ./a.out  > outfile 2>&1
+fd--->outfile
+dup2(fd, 1);
+dup2(1, 2);
+
+2. ./a.out 2>&1 > outfile
+dup2(1, 2);
+dup2(fd, 1);
+
+
