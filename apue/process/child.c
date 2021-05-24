@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -33,12 +34,14 @@ int main(int argc, char *argv[])
 		// child
 		printf("child pid:%d\n", getpid());
 
+		sleep(3);
 		write(fd, "good afternoon", 14);
 		
 		close(fd);
 		exit(EXIT_SUCCESS); // EXIT_FAILURE
 	}
-	sleep(1);
+//	sleep(1);
+	wait(NULL);
 	printf("%ld\n", lseek(fd, 0, SEEK_CUR));
 	lseek(fd, 0, SEEK_SET);
 	read(fd, buf, BUFSIZE);
