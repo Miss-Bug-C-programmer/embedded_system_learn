@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <sys/file.h>
 
-#define FLNAME	"/tmp/out"
-#define BUFSIZE	100
+#define FLNAME		"/tmp/out"
+#define BUFSIZE		100
+#define LOCKFILE	"/var/run/mydaemon.pid"
 
 int mydaemon(void);
+int already_running(void);
 int main(void)
 {
 	time_t tm;
@@ -22,6 +25,11 @@ int main(void)
 
 	// 创建链接
 	openlog("mydaemon", LOG_PID | LOG_PERROR, LOG_DAEMON);
+
+	if (already_running() == -1) {
+		syslog(LOG_ERR, "already_running() failed");
+		exit(1);
+	}
 
 	if (mydaemon() == -1) {
 		// fprintf(stderr, "mydaemon() failed\n");
@@ -43,7 +51,7 @@ int main(void)
 		fputs(buf, fp);
 		fflush(fp);
 
-		syslog(LOG_DEBUG, "%s done", buf);
+//		syslog(LOG_DEBUG, "%s done", buf);
 
 		sleep(1);
 	}
@@ -87,8 +95,29 @@ int mydaemon(void)
 	return 0;
 }
 
+// 单实例
+int already_running(void)
+{
+	int fd;
+	char buf[BUFSIZE] = {};
 
+	fd = open(LOCKFILE, O_RDWR | O_CREAT, 0666);
+	if (fd ==-1) {
+		syslog(LOG_ERR, "open():%s", strerror(errno));
+		return -1;
+	}
 
+	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
+		syslog(LOG_ERR, "flock():%s", strerror(errno));	
+		close(fd);
+		return -1;
+	}
+
+	ftruncate(fd, 0);
+	snprintf(buf, BUFSIZE, "%d", getpid());
+	write(fd, buf, strlen(buf));
+	return 0;
+}
 
 
 
