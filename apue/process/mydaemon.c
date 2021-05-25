@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #define FLNAME	"/tmp/out"
 #define BUFSIZE	100
@@ -17,14 +20,19 @@ int main(void)
 	char buf[BUFSIZE] = {};
 	FILE *fp;
 
+	// 创建链接
+	openlog("mydaemon", LOG_PID | LOG_PERROR, LOG_DAEMON);
+
 	if (mydaemon() == -1) {
-		fprintf(stderr, "mydaemon() failed\n");
+		// fprintf(stderr, "mydaemon() failed\n");
+		syslog(LOG_ERR, "mydaemon() failed");
 		exit(1);
 	}
 
 	fp = fopen(FLNAME, "w");
 	if (NULL == fp) {
-		perror("fopen()");
+		// perror("fopen()");
+		syslog(LOG_ERR, "fopen():%s", strerror(errno));
 		exit(1);
 	}
 
@@ -34,6 +42,9 @@ int main(void)
 		strftime(buf, BUFSIZE, "%Y-%m-%d %H:%M:%S\n", tmp);
 		fputs(buf, fp);
 		fflush(fp);
+
+		syslog(LOG_DEBUG, "%s done", buf);
+
 		sleep(1);
 	}
 
