@@ -26,8 +26,8 @@ struct list_st {
 
 // 频道数据
 struct listData_st {
-	int8_t chnId;
-	char chnmsg[MSGSIZE];
+	int8_t chnId; // MINCHNID~MAXCHNID
+	char chnmsg[1];
 }__attribute__((packed));
 
 #endif
