@@ -30,17 +30,17 @@ static void *thrList(void *s)
 	sum = sizeof(list->chnId);
 	for (i = 0; i < chnCnt; i++) {
 		size = sizeof(struct listEntry_st) + strlen(mlib[i].descr);
+		printf("size:%d\n", size);
 		entry = malloc(size);
 		entry->chnId = mlib[i].chnid;
 		strcpy(entry->dscr, mlib[i].descr);
 		entry->len = size;
-		sum += size;
 		memcpy((char *)list+sum, entry, size);	
+		sum += size;
 		free(entry);
 	}
-	printf("sum:%d\n", sum);
 	list = realloc(list, sum);
-	
+
 	groupAddr.sin_family = AF_INET;
 	inet_aton(MULTICASTIP, &groupAddr.sin_addr);
 	groupAddr.sin_port = htons(RCVPORT);
@@ -56,7 +56,7 @@ int thrChnListStart(const mlibChnList_t *ml, int cnt)
 	chnCnt = cnt;
 	pthread_t tid;
 	int err;
-	
+
 	if ((err = pthread_create(&tid, NULL, thrList, NULL)) != 0) {
 		fprintf(stderr, "pthread_create():%s\n", strerror(err));
 		return -1;
