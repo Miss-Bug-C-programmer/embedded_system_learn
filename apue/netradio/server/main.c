@@ -12,6 +12,7 @@
 
 #include "medialib.h"
 #include "thrChnList.h"
+#include "thrChnData.h"
 
 int serverSd;
 
@@ -50,11 +51,9 @@ int main(void)
 	// 启动发送频道列表线程
 	thrChnListStart(mlib, chnnr);
 
-#if 0
 	for (int i = 0; i < chnnr; i++) {
-		printf("%d %s\n", mlib[i].chnid, mlib[i].descr);
+		createThrChnData(mlib[i].chnId);		
 	}
-#endif
 
 	while (1)
 		pause();

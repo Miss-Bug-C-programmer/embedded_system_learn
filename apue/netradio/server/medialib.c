@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <glob.h>
@@ -11,9 +15,13 @@ struct context_st {
 	int8_t chnid;
 	char *descr;
 	glob_t dataFilePaths;
-	int musicIndex; // dataFilePaths.gl_pathv-->index 
+	int musicIndex; // dataFGilePaths.gl_pathv-->index 
 	int pos;
+	int fd;
 };
+
+static struct context_st *mlibContext = NULL;	
+static int chnnr;
 
 static int parseChnEntry(const char *chnPath, struct context_st *context)
 {
@@ -47,14 +55,18 @@ static int parseChnEntry(const char *chnPath, struct context_st *context)
 	context->chnid = id++;
 	context->pos = 0;
 	context->musicIndex = 0;
+	
+	// 打开该频道的第一个音乐文件
+	context->fd = open((context->dataFilePaths.gl_pathv)[0], \
+			O_RDONLY);
+	// if error
 
 	return 0;
 }
 
 // 解析媒体库目录
-static int parseChnDir(struct context_st **mlibContext, int *chnnr)
+static int parseChnDir()
 {
-	struct context_st *p = NULL;
 	char buf[BUFSIZE] = {};
 	glob_t res;
 	int i;
@@ -68,11 +80,11 @@ static int parseChnDir(struct context_st **mlibContext, int *chnnr)
 		fprintf(stderr, "[%d][%s]glob() failed\n", __LINE__, __FUNCTION__);
 		return -1;
 	}
-	p = calloc(res.gl_pathc, sizeof(struct context_st));
+	mlibContext	= calloc(res.gl_pathc, sizeof(struct context_st));
 
 	int validChnIndex = 0;
 	for (i = 0; i < res.gl_pathc; i++) {
-		if (parseChnEntry((res.gl_pathv)[i], p+validChnIndex) == -1) {
+		if (parseChnEntry((res.gl_pathv)[i], mlibContext+validChnIndex) == -1) {
 			// 该频道无效
 			continue;
 		}
@@ -80,24 +92,21 @@ static int parseChnDir(struct context_st **mlibContext, int *chnnr)
 	}
 
 	if (validChnIndex != res.gl_pathc)
-		p = realloc(p, validChnIndex * sizeof(struct context_st));
+		mlibContext = realloc(mlibContext, validChnIndex * sizeof(struct context_st));
 
-	*mlibContext = p;
-	*chnnr = validChnIndex;
+	chnnr = validChnIndex;
 }
 
 int mlibGetChnList(mlibChnList_t **mlibArr, int *chnCnt)
 {
-	struct context_st *p = NULL;	
-	int chnnr;
 	int i;
 
-	parseChnDir(&p, &chnnr);
+	parseChnDir();
 	*mlibArr = calloc(chnnr, sizeof(mlibChnList_t)); 
 
 	for (i = 0; i < chnnr; i++) {
-		(*mlibArr)[i].chnid = p[i].chnid;
-		(*mlibArr)[i].descr = strdup(p[i].descr);
+		(*mlibArr)[i].chnid = mlibContext[i].chnid;
+		(*mlibArr)[i].descr = strdup(mlibContext[i].descr);
 	}
 
 	*chnCnt = chnnr;
@@ -105,9 +114,37 @@ int mlibGetChnList(mlibChnList_t **mlibArr, int *chnCnt)
 	return 0;
 }
 
+static int openNext(int8_t chnid)
+{
+	struct context_st *p = mlibContext+chnid-1; 
+
+	p->musicIndex = (p->musicIndex+1) % (p->dataFilePaths).gl_pathc;
+	p->fd = open((p->dataFilePaths.gl_pathv)[p->musicIndex], O_RDONLY);
+	// if error;
+	p->pos = 0;
+
+	return 0;
+}
+
 // 数据
 int mlibReadChnData(int8_t chnid, void *buf, size_t size)
 {
+	while (1) {
+		int cnt = pread(mlibContext[chnid-1].fd, buf, size, \
+				mlibContext[chnid-1].pos);	
+		if (cnt == -1) {
+			perror("pread()");
+			return -1;
+		}
+		if (cnt == 0) {
+			// 打开下一个音乐文件
+			openNext(chnid);
+			continue;
+		}
+		mlibContext[chnid-1].pos += cnt;
+		break;
+	}
 
+	return 0;
 }
 
