@@ -129,8 +129,9 @@ static int openNext(int8_t chnid)
 // 数据
 int mlibReadChnData(int8_t chnid, void *buf, size_t size)
 {
+	int cnt;
 	while (1) {
-		int cnt = pread(mlibContext[chnid-1].fd, buf, size, \
+		 cnt = pread(mlibContext[chnid-1].fd, buf, size, \
 				mlibContext[chnid-1].pos);	
 		if (cnt == -1) {
 			perror("pread()");
@@ -145,6 +146,6 @@ int mlibReadChnData(int8_t chnid, void *buf, size_t size)
 		break;
 	}
 
-	return 0;
+	return cnt;
 }
 

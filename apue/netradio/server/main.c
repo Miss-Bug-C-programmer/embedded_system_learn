@@ -52,7 +52,7 @@ int main(void)
 	thrChnListStart(mlib, chnnr);
 
 	for (int i = 0; i < chnnr; i++) {
-		createThrChnData(mlib[i].chnId);		
+		createThrChnData(mlib[i].chnid);		
 	}
 
 	while (1)
