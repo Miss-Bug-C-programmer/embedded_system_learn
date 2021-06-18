@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <net/if.h>
 #include <stdlib.h>
@@ -42,6 +43,11 @@ int main(void)
 	struct list_st *list;
 	int len;
 	struct listEntry_st *listEntry;
+	struct listData_st *data;
+	int8_t chooseId;
+	pid_t pid;
+	int pfd[2];
+	int cnt;
 
 	// 初始化套接字
 	socketInit(&sd);
@@ -67,9 +73,42 @@ int main(void)
 		printf("list:%p\n", list);
 		printf("len:%d\n", listEntry->len);
 		printf("%d %s\n", listEntry->chnId, listEntry->dscr);
-		sleep(1);
 	}
 
+	printf("请输入你选择的频道:");	
+	scanf("%hhd", &chooseId);
+	
+	pipe(pfd);
+	// if error
+
+	pid = fork();
+	if (-1 == pid) {
+		perror("fork()");
+		exit(1);
+	}
+
+	if (pid == 0) {
+		char buf[MSGSIZE] = {};
+
+		close(pfd[1]);
+		// dup2(pfd[0], 0);
+		while (1) {
+			memset(buf, '\0', MSGSIZE);
+			read(pfd[0], buf, MSGSIZE);
+			puts(buf);
+		}
+		// execl("/usr/bin/mplayer", "mplayer", "-", NULL);
+		// perror("execl()");
+	}
+
+	close(pfd[0]);
+	data = malloc(MSGSIZE);
+	while (1) {
+		cnt = recvfrom(sd, data, MSGSIZE, 0, NULL, NULL);	
+		if (data->chnId != chooseId)
+			continue;
+		write(pfd[1], data->chnmsg, cnt-1); // chnId
+	}
 
 	exit(0);
 ERROR:
