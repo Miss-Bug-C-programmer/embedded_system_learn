@@ -13,7 +13,7 @@
 * UNIX高级编程
   * IO
   * IPC
-  * Pthread 'UNIX'内核函数
+  * Pthread 'UNIX' 内核函数
   * Process
   * Signal
   * NETIPC
